@@ -200,7 +200,7 @@ function connectWallet(type){
   wallet.connected = true;
   wallet.address = randAddr();
   wallet.balance = 10;
-  loadWallet(); // restore owned if reconnecting
+  try{const d=localStorage.getItem('neon_wallet');if(d)wallet.owned=JSON.parse(d).owned||[]}catch(e){}
   saveWallet();
   $('#walletModal').classList.remove('active');
   renderAll();
