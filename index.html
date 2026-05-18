@@ -31,7 +31,73 @@
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:13px;color:var(--muted)} .field input,.field select{padding:12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);color:var(--text)}
     @media (max-width: 1100px){.layout,.hero,.two,.bot-shell{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
     @media (max-width: 720px){.kpis{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+    .nft-section {
+  padding: 50px 20px;
+  background-color: #0a0a0a;
+  color: #fff;
+  text-align: center;
+}
+.nft-grid {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+.nft-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 15px;
+  width: 280px;
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.nft-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+}
+.nft-image {
+  height: 200px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+.nft-price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #00ffff;
+}
+.fiat-price {
+  font-size: 0.9rem;
+  color: #888;
+}
+.nft-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+.btn-buy {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+.btn-buy.crypto {
+  background: #f7931a; /* Цвет Bitcoin/Crypto */
+  color: #fff;
+}
+.btn-buy.fiat {
+  background: #635bff; /* Цвет Stripe/Банка */
+  color: #fff;
+}
+.btn-buy:hover {
+  opacity: 0.8;
+}
   </style>
+  
 </head>
 <body>
 <div class="wrap">
@@ -385,7 +451,52 @@ if(newNicheBtn && newNicheAnswer){
     }
   };
 }
+  <section id="nft-collection" class="nft-section">
+  <div class="container">
+    <h2 class="section-title">Цифровая NFT-коллекция Neon</h2>
+    <p class="section-subtitle">Уникальные неоновые дизайны в виде цифровых активов.</p>
+    
+    <div class="nft-grid">
+      <!-- Карточка NFT 1 -->
+      <div class="nft-card">
+        <div class="nft-image" style="background: linear-gradient(45deg, #ff00ff, #00ffff);"></div>
+        <h3>Cyberpunk Fox</h3>
+        <p class="nft-price">0.05 ETH <span class="fiat-price">(~ 150 BYN)</span></p>
+        <div class="nft-actions">
+          <button class="btn-buy crypto" onclick="payCrypto('Cyberpunk Fox', '0.05')">🪙 Крипта</button>
+          <button class="btn-buy fiat" onclick="payCard('Cyberpunk Fox', '150')">💳 Карта</button>
+        </div>
+      </div>
+
+      <!-- Карточка NFT 2 -->
+      <div class="nft-card">
+        <div class="nft-image" style="background: linear-gradient(45deg, #00ffcc, #0000ff);"></div>
+        <h3>Neon Synthwave</h3>
+        <p class="nft-price">0.08 ETH <span class="fiat-price">(~ 240 BYN)</span></p>
+        <div class="nft-actions">
+          <button class="btn-buy crypto" onclick="payCrypto('Neon Synthwave', '0.08')">🪙 Крипта</button>
+          <button class="btn-buy fiat" onclick="payCard('Neon Synthwave', '240')">💳 Карта</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 renderAll(); calcBot(); startBot();
+  <script>
+  function payCrypto(itemName, price) {
+    // Имитация вызова Web3 кошелька (например, MetaMask)
+    if (typeof window.ethereum !== 'undefined') {
+      alert("Открытие MetaMask для оплаты " + itemName + " на сумму " + price + " ETH...");
+    } else {
+      alert("Подключение к криптошлюзу: пожалуйста, отсканируйте QR-код для перевода " + price + " ETH за " + itemName + ".");
+    }
+  }
+
+  function payCard(itemName, price) {
+    // Имитация редиректа на банковский шлюз (Stripe/Robokassa/Webpay)
+    alert("Перенаправление на защищенный банковский шлюз для оплаты " + price + " BYN за " + itemName + "...");
+  }
+</script>
 </script>
   <script type="text/javascript">
   (function(d, t) {
