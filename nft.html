@@ -159,7 +159,7 @@ const NFTs = [
    {id:'franchise', name:'Франшизный стандарт', desc:'Серийный неоновый элемент для сетевых точек и франшиз. Единый бренд-стандарт.', price:1.5, niche:'Франшизы и сети',
     img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/2f968178e987038e69857e2c5780134b5fd65b70.jpg'},
    {id:'horol', name:'Horol Neon', desc:'Эксклюзивная неоновая композиция с уникальным дизайном. Цифровой актив + физическое воплощение.', price:0.1010, priceLabel:'0.1010', niche:'Премиум-коллекция',
-    img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5caad31057b7f4dabced0e61580469601ec758c2.jpg'}
+    img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/95cdb761e6f01fb95759cc15a584d9053ecc2f42.jpg'}
 ];
 
 const $ = s => document.querySelector(s);
@@ -240,6 +240,7 @@ function renderNFTs(){
             <div class="nft-price">${n.priceLabel || n.price.toFixed(2)} ETH</div>
             ${owned ? '<span class="badge" style="background:var(--success);color:#fff">В вашей коллекции</span>' : '<button class="btn btn-primary btn-sm buy-btn" data-id="'+n.id+'">Купить</button>'}
           </div>
+          <a href="index.html#bot-section" class="btn btn-sm" style="margin-top:10px;width:100%;text-align:center;display:block">📊 Отдельный бот и KPI</a>
         </div>
       </div>
     `;

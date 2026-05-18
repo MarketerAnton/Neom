@@ -107,7 +107,7 @@
         <div id="steps"></div>
       </section>
 
-      <section class="card panel bot-shell">
+      <section class="card panel bot-shell" id="bot-section">
         <div class="phone">
           <div class="screen">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px">
@@ -266,7 +266,7 @@ const tabs = [
   {key:'eff', title:'Эффективность'},
   {key:'marketing', title:'Маркетинговая целесообразность'}
 ];
-let currentNiche = niches[0];
+let currentNiche = null;
 function clampROMI(v){ return Math.max(-100, Math.min(150, v)); }
 let currentTab = 'market';
 const $ = s => document.querySelector(s);
@@ -274,7 +274,7 @@ function money(v){return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2,
 function pct(v){return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1,minimumFractionDigits:1}).format(v)+'%'}
 function renderNiches(){
   const root = $('#niches'); root.innerHTML='';
-  niches.forEach(n=>{ const d=document.createElement('div'); d.className='niche'+(n.key===currentNiche.key?' active':''); d.innerHTML='<strong>'+n.name+'</strong><div class="small" style="margin-top:4px">'+n.desc+'</div>'; d.onclick=()=>{currentNiche=n; renderAll(); const sec=document.querySelector('.tabs'); if(sec){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }}; root.appendChild(d); });
+  niches.forEach(n=>{ const d=document.createElement('div'); d.className='niche'+(currentNiche && n.key===currentNiche.key?' active':''); d.innerHTML='<strong>'+n.name+'</strong><div class="small" style="margin-top:4px">'+n.desc+'</div>'; d.onclick=()=>{currentNiche=n; renderAll(); const sec=document.querySelector('.tabs'); if(sec){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }}; root.appendChild(d); });
 }
 function calcNiche(n){
   const deals = Math.round(n.orders);
@@ -285,6 +285,15 @@ function calcNiche(n){
   return {deals,revenue,grossProfit,romi,cac};
 }
 function renderHeader(){
+  if(!currentNiche){
+    $('#nicheBadge').textContent = 'Ниша';
+    $('#nicheTitle').textContent = 'Выберите нишу';
+    $('#nicheDesc').textContent = 'Нажмите на нишу в боковом меню слева, чтобы увидеть аналитику';
+    $('#marketSize').textContent = '—'; $('#avgCheck').textContent = '—'; $('#ordersMonth').textContent = '—'; $('#romiVal').textContent = '—';
+    $('#fitText').textContent = '';
+    $('#nicheImage').style.display='none'; $('#nicheImage2').style.display='none'; $('#nicheImage3').style.display='none';
+    return;
+  }
   const c = calcNiche(currentNiche);
   $('#nicheBadge').textContent = currentNiche.name;
   $('#nicheTitle').textContent = currentNiche.name;
@@ -294,20 +303,21 @@ function renderHeader(){
   $('#ordersMonth').textContent = currentNiche.orders;
   $('#romiVal').textContent = pct(c.romi);
   $('#fitText').textContent = currentNiche.fit;
-  $('#nicheImage').src = currentNiche.image;
-  $('#nicheImage').alt = currentNiche.name;
-  $('#nicheImage2').src = currentNiche.image2 || currentNiche.image;
-  $('#nicheImage2').alt = currentNiche.name + ' 2';
-  $('#nicheImage3').src = currentNiche.image3 || currentNiche.image;
-  $('#nicheImage3').alt = currentNiche.name + ' 3';
+  $('#nicheImage').style.display=''; $('#nicheImage').src = currentNiche.image; $('#nicheImage').alt = currentNiche.name;
+  $('#nicheImage2').style.display=''; $('#nicheImage2').src = currentNiche.image2 || currentNiche.image; $('#nicheImage2').alt = currentNiche.name + ' 2';
+  $('#nicheImage3').style.display=''; $('#nicheImage3').src = currentNiche.image3 || currentNiche.image; $('#nicheImage3').alt = currentNiche.name + ' 3';
 }
 function renderTabs(){
   const root = $('#tabs'); root.innerHTML='';
   tabs.forEach(t=>{ const b=document.createElement('button'); b.className='tab'+(t.key===currentTab?' active':''); b.textContent=t.title; b.onclick=()=>{currentTab=t.key; renderSteps(); renderTabs(); const sec=document.querySelector('.tabs'); if(sec){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }}; root.appendChild(b); });
 }
 function renderSteps(){
-  const c = calcNiche(currentNiche);
   const root = $('#steps');
+  if(!currentNiche){
+    root.innerHTML = '<div class="item" style="padding:40px;text-align:center"><h3>Выберите нишу</h3><div class="muted" style="margin-top:8px">Нажмите на одну из ниш в боковом меню слева, чтобы увидеть подробные данные по рынку, цифрам, эффективности и маркетинговой целесообразности.</div></div>';
+    return;
+  }
+  const c = calcNiche(currentNiche);
   root.innerHTML = `
     <div id="market-section" class="step ${currentTab==='market'?'active':''}">
       <div class="two" style="margin-top:16px">
