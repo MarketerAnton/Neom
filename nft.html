@@ -51,10 +51,13 @@
     .modal h2{margin-bottom:6px}
     .modal-close{float:right;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;line-height:1}
     .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:.18s;margin-top:8px}
-    .wallet-opt:hover{border-color:var(--primary);background:var(--primary2)}
+    .wallet-opt:hover,.wallet-opt.active{border-color:var(--primary);background:var(--primary2)}
     .wallet-icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px}
     .wallet-label{font-weight:500;font-size:14px}
     .wallet-desc{font-size:12px;color:var(--muted)}
+    .payment-tabs{display:flex;gap:8px;margin-top:12px}.payment-tab{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;font-size:13px;transition:.18s;font-family:'Satoshi',sans-serif;color:var(--text)}.payment-tab.active{border-color:var(--primary);background:var(--primary2);font-weight:500}
+    .cfield{margin-top:12px}.cfield label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.cfield input{width:100%;padding:12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:monospace;font-size:14px;box-sizing:border-box}
+    .crow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 
     .nft-preview{display:flex;gap:18px;margin:16px 0;flex-wrap:wrap}
     .nft-preview img{width:160px;height:160px;object-fit:cover;border-radius:18px;border:1px solid var(--border);flex-shrink:0}
@@ -127,6 +130,11 @@
     <h2>Подключить кошелёк</h2>
     <div class="sub" style="margin-bottom:12px">Выберите способ подключения для покупки NFT</div>
     <div id="walletOptions"></div>
+    <div style="margin-top:14px">
+      <label class="small" style="display:block;margin-bottom:6px">Адрес кошелька (можно оставить пустым)</label>
+      <input id="walletAddressInput" type="text" placeholder="0x... или оставьте пустым для авто-генерации" style="width:100%;padding:12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:monospace;font-size:13px;box-sizing:border-box">
+    </div>
+    <button class="btn btn-primary" id="connectConfirmBtn" style="margin-top:14px;width:100%;padding:14px">Подключить</button>
   </div>
 </div>
 
@@ -169,21 +177,21 @@ function randAddr(){const h='0123456789abcdef'; let a='0x'; for(let i=0;i<40;i++
 function fmtAddr(a){return a.slice(0,6)+'...'+a.slice(-4)}
 function fmtEth(v){return v.toFixed(2)+' ETH'}
 
-let wallet = {connected: false, address: '', balance: 10, owned: []};
+let wallet = {connected: false, address: '', type: '', balance: 10, owned: []};
 function loadWallet(){
   try{
     const d = localStorage.getItem('neon_wallet');
-    if(d){const p=JSON.parse(d); wallet.connected=p.connected||false; wallet.address=p.address||''; wallet.balance=typeof p.balance==='number'?p.balance:10; wallet.owned=p.owned||[];}
+    if(d){const p=JSON.parse(d); wallet.connected=p.connected||false; wallet.address=p.address||''; wallet.type=p.type||''; wallet.balance=typeof p.balance==='number'?p.balance:10; wallet.owned=p.owned||[];}
   }catch(e){}
 }
 function saveWallet(){
-  localStorage.setItem('neon_wallet',JSON.stringify({connected:wallet.connected,address:wallet.address,balance:wallet.balance,owned:wallet.owned}));
+  localStorage.setItem('neon_wallet',JSON.stringify({connected:wallet.connected,address:wallet.address,type:wallet.type,balance:wallet.balance,owned:wallet.owned}));
 }
 
 function renderWalletWidget(){
   const root = $('#walletWidget');
   if(wallet.connected){
-    root.innerHTML = `<div class="wallet-info"><span class="wallet-dot"></span><span>${fmtEth(wallet.balance)}</span><span class="wallet-addr">${fmtAddr(wallet.address)}</span><button class="btn btn-sm" id="disconnectBtn">Отключить</button></div>`;
+    root.innerHTML = `<div class="wallet-info"><span class="wallet-dot"></span><span>${wallet.type}</span><span>${fmtEth(wallet.balance)}</span><span class="wallet-addr">${fmtAddr(wallet.address)}</span><button class="btn btn-sm" id="disconnectBtn">Отключить</button></div>`;
     $('#disconnectBtn').onclick = disconnectWallet;
   } else {
     root.innerHTML = `<button class="btn btn-primary" id="connectBtn">Подключить кошелёк</button>`;
@@ -192,19 +200,17 @@ function renderWalletWidget(){
 }
 
 function disconnectWallet(){
-  wallet.connected = false; wallet.address = ''; wallet.balance = 10; wallet.owned = [];
+  wallet.connected = false; wallet.address = ''; wallet.type = ''; wallet.balance = 10; wallet.owned = [];
   saveWallet(); renderAll();
 }
 
-function connectWallet(type){
-  wallet.connected = true;
-  wallet.address = randAddr();
-  wallet.balance = 10;
+function connectWallet(walletType, addr){
+  wallet = {connected: true, address: addr || randAddr(), type: walletType, balance: 10, owned: []};
   try{const d=localStorage.getItem('neon_wallet');if(d)wallet.owned=JSON.parse(d).owned||[]}catch(e){}
   saveWallet();
   $('#walletModal').classList.remove('active');
   renderAll();
-  showNotif('Кошелёк успешно подключён: ' + fmtAddr(wallet.address), false);
+  showNotif('Кошелёк «' + walletType + '» подключён: ' + fmtAddr(wallet.address), false);
 }
 
 function renderWalletOptions(){
@@ -222,8 +228,13 @@ function renderWalletOptions(){
     </div>
   `).join('');
   root.querySelectorAll('.wallet-opt').forEach(el => {
-    el.onclick = () => connectWallet(el.dataset.wallet);
+    el.onclick = () => {
+      root.querySelectorAll('.wallet-opt').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+    };
   });
+  const first = root.querySelector('.wallet-opt');
+  if(first) first.classList.add('active');
 }
 
 function renderNFTs(){
@@ -296,6 +307,32 @@ function openPurchase(id){
     return;
   }
   const content = $('#purchaseContent');
+  let payMethod = 'card';
+  const renderForm = () => {
+    const form = $('#paymentForm');
+    if(!form) return;
+    if(payMethod === 'card'){
+      form.innerHTML = `
+        <div class="cfield"><label>Номер карты</label><input type="text" placeholder="0000 0000 0000 0000" value="4242 4242 4242 4242"></div>
+        <div class="crow">
+          <div class="cfield"><label>Срок</label><input type="text" placeholder="ММ/ГГ" value="12/26"></div>
+          <div class="cfield"><label>CVV</label><input type="text" placeholder="***" value="123"></div>
+        </div>
+        <div class="cfield"><label>Владелец</label><input type="text" placeholder="ANTON MARKOV" value="ANTON MARKOV"></div>
+      `;
+    } else {
+      const after = Math.round((wallet.balance - nft.price) * 100) / 100;
+      form.innerHTML = `
+        <div style="padding:14px;border-radius:18px;background:var(--surface2);border:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between"><span class="small">Баланс:</span><span>${fmtEth(wallet.balance)}</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="small">Цена:</span><span>${nft.priceLabel || nft.price.toFixed(2)} ETH</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-weight:700">
+            <span class="small">После покупки:</span><span>${fmtEth(after)}</span>
+          </div>
+        </div>
+      `;
+    }
+  };
   content.innerHTML = `
     <div class="nft-preview">
       <img src="${nft.img}" alt="${nft.name}" />
@@ -303,30 +340,51 @@ function openPurchase(id){
         <h3>${nft.name}</h3>
         <div class="small" style="margin-top:4px">${nft.desc}</div>
         <div class="nft-price" style="margin-top:10px">${nft.priceLabel || nft.price.toFixed(2)} ETH</div>
-        <div class="small" style="margin-top:4px">Ваш баланс: ${fmtEth(wallet.balance)}</div>
       </div>
     </div>
+    <div class="payment-tabs">
+      <button class="payment-tab active" data-method="card">💳 Карта</button>
+      <button class="payment-tab" data-method="crypto">◆ Крипта</button>
+    </div>
+    <div id="paymentForm" style="margin-top:4px"></div>
     <div style="margin-top:16px;display:flex;gap:10px">
       <button class="btn" style="flex:1" id="cancelPurchase">Отмена</button>
-      <button class="btn btn-primary" style="flex:1" id="confirmPurchase" ${wallet.balance < nft.price ? 'disabled' : ''}>${wallet.balance < nft.price ? 'Недостаточно средств' : 'Подтвердить покупку'}</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmPurchase">Подтвердить покупку</button>
     </div>
   `;
+  renderForm();
+  content.querySelectorAll('.payment-tab').forEach(t => {
+    t.onclick = () => {
+      content.querySelectorAll('.payment-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      payMethod = t.dataset.method;
+      renderForm();
+    };
+  });
   $('#cancelPurchase').onclick = () => $('#purchaseModal').classList.remove('active');
-  $('#confirmPurchase').onclick = () => confirmPurchase(nft);
+  $('#confirmPurchase').onclick = () => {
+    if(payMethod === 'crypto' && wallet.balance < nft.price){
+      showNotif('Недостаточно средств на кошельке', true);
+      return;
+    }
+    confirmPurchase(nft, payMethod);
+  };
   $('#purchaseModal').classList.add('active');
 }
 
-function confirmPurchase(nft){
-  if(wallet.balance < nft.price){
-    showNotif('Недостаточно средств на кошельке', true);
-    return;
+function confirmPurchase(nft, method){
+  if(method === 'crypto'){
+    if(wallet.balance < nft.price){
+      showNotif('Недостаточно средств на кошельке', true);
+      return;
+    }
+    wallet.balance = Math.round((wallet.balance - nft.price) * 100) / 100;
   }
-  wallet.balance = Math.round((wallet.balance - nft.price) * 100) / 100;
   wallet.owned.push(nft.id);
   saveWallet();
   $('#purchaseModal').classList.remove('active');
   renderAll();
-  showNotif('Поздравляем! «' + nft.name + '» добавлен в вашу коллекцию', false);
+  showNotif(method === 'crypto' ? 'Поздравляем! «' + nft.name + '» добавлен в вашу коллекцию' : 'Оплачено картой! «' + nft.name + '» добавлен в коллекцию', false);
 }
 
 function renderAll(){
@@ -351,6 +409,12 @@ $('#walletModalClose').onclick = () => $('#walletModal').classList.remove('activ
 $('#purchaseModalClose').onclick = () => $('#purchaseModal').classList.remove('active');
 $('#walletModal').onclick = e => { if(e.target === e.currentTarget) $('#walletModal').classList.remove('active'); };
 $('#purchaseModal').onclick = e => { if(e.target === e.currentTarget) $('#purchaseModal').classList.remove('active'); };
+$('#connectConfirmBtn').onclick = () => {
+  const sel = document.querySelector('#walletOptions .wallet-opt.active');
+  if(!sel){ showNotif('Выберите тип кошелька', true); return; }
+  const addr = document.getElementById('walletAddressInput').value.trim() || randAddr();
+  connectWallet(sel.dataset.wallet, addr);
+};
 
 loadWallet();
 renderWalletOptions();
