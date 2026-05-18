@@ -216,10 +216,10 @@ function connectWallet(walletType, addr){
 function renderWalletOptions(){
   const root = $('#walletOptions');
   const opts = [
-    {icon:'🦊', label:'MetaMask', desc:'Популярный браузерный кошелёк'},
+    {icon:'🐦', label:'WhiteBird', desc:'Криптокошелёк WhiteBird'},
     {icon:'💎', label:'Phantom', desc:'Кошелёк для Solana и NFT'},
     {icon:'🔗', label:'WalletConnect', desc:'Подключение через QR-код'},
-    {icon:'💧', label:'Sui Wallet', desc:'Кошелёк для Sui ecosystem'}
+    {icon:'💧', label:'Dzengi.com', desc:'Платёжная система Dzengi'}
   ];
   root.innerHTML = opts.map(o => `
     <div class="wallet-opt" data-wallet="${o.label}">
