@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Belarus · NFT Marketplace</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@500,700&display=swap" rel="stylesheet">
+  <style>
+    :root,[data-theme="light"]{--bg:#f7f6f2;--surface:#fbfaf7;--surface2:#f2efea;--text:#24211c;--muted:#6d6a64;--border:#d9d3ca;--primary:#01696f;--primary2:#dff2f2;--success:#437a22;--warn:#da7101;--shadow:0 12px 32px rgba(0,0,0,.08)}
+    [data-theme="dark"]{--bg:#141311;--surface:#1c1b19;--surface2:#242320;--text:#ece7df;--muted:#aca59c;--border:#3a3834;--primary:#53c4cf;--primary2:#20373a;--success:#7fca5d;--warn:#ffb04a;--shadow:0 18px 40px rgba(0,0,0,.38)}
+    *{box-sizing:border-box} body{margin:0;font-family:'Satoshi',sans-serif;background:radial-gradient(circle at top right, rgba(83,196,207,.1), transparent 22%),var(--bg);color:var(--text)}
+    a{color:var(--primary);text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1360px;margin:0 auto;padding:20px}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap}
+    h1,h2,h3{font-family:'Cabinet Grotesk',sans-serif;margin:0} h1{font-size:clamp(24px,3.2vw,40px)} h2{font-size:22px} h3{font-size:17px}
+    .sub{color:var(--muted);margin-top:4px}
+    .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:11px 15px;border-radius:14px;cursor:pointer;font-family:'Satoshi',sans-serif;font-size:14px;transition:.18s}
+    .btn-primary{background:var(--primary);color:#fff;border-color:transparent;font-weight:500}
+    .btn-primary:hover{opacity:.88}
+    .btn-sm{padding:8px 12px;font-size:13px}
+    .card{background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow)}
+    .panel{padding:18px}
+    .muted{color:var(--muted)} .small{font-size:13px;color:var(--muted)}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--primary2);color:var(--text);font-size:12px;font-weight:500}
+
+    .wallet-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .wallet-info{padding:8px 14px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:13px}
+    .wallet-dot{width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block}
+    .wallet-addr{font-family:monospace;font-size:12px;color:var(--muted)}
+
+    .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:6px}
+    .nft-card{border-radius:20px;border:1px solid var(--border);background:var(--surface2);overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
+    .nft-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+    .nft-card.owned{border-color:var(--success);opacity:.85}
+    .nft-card.owned::after{content:"Куплено";position:absolute;top:10px;right:10px;background:var(--success);color:#fff;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:500}
+    .nft-card{position:relative}
+    .nft-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;border-bottom:1px solid var(--border)}
+    .nft-body{padding:14px}
+    .nft-name{font-weight:700;font-size:15px}
+    .nft-desc{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.35}
+    .nft-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+    .nft-price{font-size:16px;font-weight:700;display:flex;align-items:center;gap:4px}
+    .nft-price::before{content:"◆";font-size:12px;color:var(--primary)}
+
+    .section-title{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .section-title h2{font-size:20px}
+
+    .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:100;justify-content:center;align-items:center;padding:20px}
+    .modal-overlay.active{display:flex}
+    .modal{background:var(--surface);border-radius:24px;border:1px solid var(--border);box-shadow:var(--shadow);padding:28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+    .modal h2{margin-bottom:6px}
+    .modal-close{float:right;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;line-height:1}
+    .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:.18s;margin-top:8px}
+    .wallet-opt:hover{border-color:var(--primary);background:var(--primary2)}
+    .wallet-icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .wallet-label{font-weight:500;font-size:14px}
+    .wallet-desc{font-size:12px;color:var(--muted)}
+
+    .nft-preview{display:flex;gap:18px;margin:16px 0;flex-wrap:wrap}
+    .nft-preview img{width:160px;height:160px;object-fit:cover;border-radius:18px;border:1px solid var(--border);flex-shrink:0}
+    .nft-preview-info{flex:1}
+    .nft-preview-info .nft-price{font-size:22px;margin-top:6px}
+
+    .notif{position:fixed;bottom:24px;right:24px;padding:16px 22px;border-radius:18px;background:var(--success);color:#fff;font-weight:500;box-shadow:var(--shadow);z-index:200;transform:translateY(80px);opacity:0;transition:all .35s;font-size:14px;max-width:360px}
+    .notif.show{transform:translateY(0);opacity:1}
+    .notif.error{background:var(--warn)}
+
+    .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+    .empty-state h3{color:var(--text);margin-bottom:6px}
+
+    .toast-success{background:var(--success)}
+    .toast-error{background:var(--warn)}
+
+    .nav-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500}
+
+    .divider{margin:20px 0;border:0;border-top:1px solid var(--border)}
+
+    @media (max-width: 1100px){.gallery{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width: 720px){.gallery{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width: 480px){.gallery{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <a href="index.html" class="nav-back muted">← Назад к дашборду</a>
+      <h1 style="margin-top:4px">Neon NFT Marketplace</h1>
+      <div class="sub">Токенизированные неоновые вывески — владейте цифровым активом и подтверждением физического изделия</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" id="themeBtn">Сменить тему</button>
+      <div id="walletWidget"></div>
+    </div>
+  </div>
+
+  <div id="ownedSection" style="display:none;margin-bottom:18px">
+    <div class="card panel">
+      <div class="section-title">
+        <h2>Мои NFT</h2>
+        <span class="badge" id="ownedCount">0</span>
+      </div>
+      <div id="ownedGallery" class="gallery"></div>
+      <div id="ownedEmpty" class="empty-state" style="display:none">
+        <h3>У вас пока нет NFT</h3>
+        <div class="sub">Купите свой первый токенизированный неоновый актив из галереи ниже</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel">
+    <div class="section-title">
+      <h2>Доступные NFT</h2>
+      <span class="badge">8 коллекций</span>
+    </div>
+    <div class="sub" style="margin-bottom:14px">Каждый NFT — это цифровой сертификат владения дизайном неоновой вывески с возможностью заказа физического воплощения</div>
+    <div class="gallery" id="nftGallery"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="walletModal">
+  <div class="modal">
+    <button class="modal-close" id="walletModalClose">&times;</button>
+    <h2>Подключить кошелёк</h2>
+    <div class="sub" style="margin-bottom:12px">Выберите способ подключения для покупки NFT</div>
+    <div id="walletOptions"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="purchaseModal">
+  <div class="modal">
+    <button class="modal-close" id="purchaseModalClose">&times;</button>
+    <h2>Подтверждение покупки</h2>
+    <div id="purchaseContent"></div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const NFTs = [
+  {id:'wedding', name:'Свадебное сияние', desc:'Неоновая композиция для свадебных фотозон и love-story. Цифровой актив + право на физическое изготовление.', price:0.5, niche:'Свадебный декор',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/32d9320c3968c0545a690138c41b3e164f85547c.jpg'},
+  {id:'retail', name:'Бренд-витрина', desc:'Неоновый элемент для оформления витрин магазинов и торговых точек. Привлекает внимание и усиливает узнаваемость.', price:0.8, niche:'Ритейл и витрины',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/74ac70bf82e5c7ac6af317295984543bdb4da136.jpg'},
+  {id:'edu', name:'Детская мечта', desc:'Мягкая световая композиция для детских комнат и учебных пространств. Безопасный персонализированный неон.', price:0.3, niche:'Образовательные пространства',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/0c2d1e6a5cc5c124edff99daf658766e50ef1c79.jpg'},
+  {id:'fashion', name:'Модный неон', desc:'Капсульная коллекция неоновых элементов для fashion-индустрии и сценических образов.', price:1.2, niche:'Fashion и сцена',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5f41dbdd12b69cfc33d082c8d68d4e725e338823.jpg'},
+  {id:'event', name:'Событийный свет', desc:'Арендный формат неоновых вывесок для мероприятий. NFT даёт приоритетный доступ к бронированию.', price:0.2, niche:'Ивент-аренда',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/b83960c8030d7b4820f2c0785855666ea566df6a.jpg'},
+  {id:'horeca', name:'HoReCa стиль', desc:'Неоновое решение для кофеен, баров и салонов красоты. Повышает узнаваемость заведения.', price:0.6, niche:'HoReCa и малый бизнес',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/55bbd00136c211ba0569bc7235d87c74af97d5d9.jpg'},
+  {id:'stream', name:'Студийный знак', desc:'Персонализированная неоновая вывеска для стрим-комнат и контент-студий.', price:0.4, niche:'Блогеры и стримеры',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/2e43f9e6f64c6d8d6dcf50099001f00c895ac82f.jpg'},
+  {id:'franchise', name:'Франшизный стандарт', desc:'Серийный неоновый элемент для сетевых точек и франшиз. Единый бренд-стандарт.', price:1.5, niche:'Франшизы и сети',
+   img:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/2f968178e987038e69857e2c5780134b5fd65b70.jpg'}
+];
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function randAddr(){const h='0123456789abcdef'; let a='0x'; for(let i=0;i<40;i++) a+=h[Math.floor(Math.random()*16)]; return a;}
+function fmtAddr(a){return a.slice(0,6)+'...'+a.slice(-4)}
+function fmtEth(v){return v.toFixed(2)+' ETH'}
+
+let wallet = {connected: false, address: '', balance: 10, owned: []};
+function loadWallet(){
+  try{
+    const d = localStorage.getItem('neon_wallet');
+    if(d){const p=JSON.parse(d); wallet.connected=p.connected||false; wallet.address=p.address||''; wallet.balance=typeof p.balance==='number'?p.balance:10; wallet.owned=p.owned||[];}
+  }catch(e){}
+}
+function saveWallet(){
+  localStorage.setItem('neon_wallet',JSON.stringify({connected:wallet.connected,address:wallet.address,balance:wallet.balance,owned:wallet.owned}));
+}
+
+function renderWalletWidget(){
+  const root = $('#walletWidget');
+  if(wallet.connected){
+    root.innerHTML = `<div class="wallet-info"><span class="wallet-dot"></span><span>${fmtEth(wallet.balance)}</span><span class="wallet-addr">${fmtAddr(wallet.address)}</span><button class="btn btn-sm" id="disconnectBtn">Отключить</button></div>`;
+    $('#disconnectBtn').onclick = disconnectWallet;
+  } else {
+    root.innerHTML = `<button class="btn btn-primary" id="connectBtn">Подключить кошелёк</button>`;
+    $('#connectBtn').onclick = () => $('#walletModal').classList.add('active');
+  }
+}
+
+function disconnectWallet(){
+  wallet.connected = false; wallet.address = ''; wallet.balance = 10; wallet.owned = [];
+  saveWallet(); renderAll();
+}
+
+function connectWallet(type){
+  wallet.connected = true;
+  wallet.address = randAddr();
+  wallet.balance = 10;
+  loadWallet(); // restore owned if reconnecting
+  saveWallet();
+  $('#walletModal').classList.remove('active');
+  renderAll();
+  showNotif('Кошелёк успешно подключён: ' + fmtAddr(wallet.address), false);
+}
+
+function renderWalletOptions(){
+  const root = $('#walletOptions');
+  const opts = [
+    {icon:'🦊', label:'MetaMask', desc:'Популярный браузерный кошелёк'},
+    {icon:'💎', label:'Phantom', desc:'Кошелёк для Solana и NFT'},
+    {icon:'🔗', label:'WalletConnect', desc:'Подключение через QR-код'},
+    {icon:'💧', label:'Sui Wallet', desc:'Кошелёк для Sui ecosystem'}
+  ];
+  root.innerHTML = opts.map(o => `
+    <div class="wallet-opt" data-wallet="${o.label}">
+      <div class="wallet-icon">${o.icon}</div>
+      <div><div class="wallet-label">${o.label}</div><div class="wallet-desc">${o.desc}</div></div>
+    </div>
+  `).join('');
+  root.querySelectorAll('.wallet-opt').forEach(el => {
+    el.onclick = () => connectWallet(el.dataset.wallet);
+  });
+}
+
+function renderNFTs(){
+  const root = $('#nftGallery');
+  root.innerHTML = NFTs.map(n => {
+    const owned = wallet.owned.includes(n.id);
+    return `
+      <div class="nft-card ${owned?'owned':''}" data-id="${n.id}">
+        <img class="nft-img" src="${n.img}" alt="${n.name}" loading="lazy" />
+        <div class="nft-body">
+          <div class="nft-name">${n.name}</div>
+          <div class="nft-desc">${n.desc}</div>
+          <div class="nft-footer">
+            <div class="nft-price">${n.price.toFixed(2)} ETH</div>
+            ${owned ? '<span class="badge" style="background:var(--success);color:#fff">В вашей коллекции</span>' : '<button class="btn btn-primary btn-sm buy-btn" data-id="'+n.id+'">Купить</button>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  root.querySelectorAll('.buy-btn').forEach(b => {
+    b.onclick = e => { e.stopPropagation(); openPurchase(b.dataset.id); };
+  });
+}
+
+function renderOwned(){
+  const ownedItems = NFTs.filter(n => wallet.owned.includes(n.id));
+  const section = $('#ownedSection');
+  const gallery = $('#ownedGallery');
+  const empty = $('#ownedEmpty');
+  const count = $('#ownedCount');
+
+  if(wallet.connected && ownedItems.length > 0){
+    section.style.display = 'block';
+    count.textContent = ownedItems.length;
+    empty.style.display = 'none';
+    gallery.innerHTML = ownedItems.map(n => `
+      <div class="nft-card owned" data-id="${n.id}">
+        <img class="nft-img" src="${n.img}" alt="${n.name}" loading="lazy" />
+        <div class="nft-body">
+          <div class="nft-name">${n.name}</div>
+          <div class="nft-desc">${n.desc}</div>
+          <div class="nft-footer">
+            <div class="nft-price">${n.price.toFixed(2)} ETH</div>
+            <span class="badge" style="background:var(--success);color:#fff">Куплено</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } else if(wallet.connected && ownedItems.length === 0) {
+    section.style.display = 'block';
+    count.textContent = '0';
+    empty.style.display = 'block';
+    gallery.innerHTML = '';
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+function openPurchase(id){
+  if(!wallet.connected){
+    showNotif('Сначала подключите кошелёк', true);
+    $('#walletModal').classList.add('active');
+    return;
+  }
+  const nft = NFTs.find(n => n.id === id);
+  if(!nft) return;
+  if(wallet.owned.includes(id)){
+    showNotif('Этот NFT уже в вашей коллекции', true);
+    return;
+  }
+  const content = $('#purchaseContent');
+  content.innerHTML = `
+    <div class="nft-preview">
+      <img src="${nft.img}" alt="${nft.name}" />
+      <div class="nft-preview-info">
+        <h3>${nft.name}</h3>
+        <div class="small" style="margin-top:4px">${nft.desc}</div>
+        <div class="nft-price" style="margin-top:10px">${nft.price.toFixed(2)} ETH</div>
+        <div class="small" style="margin-top:4px">Ваш баланс: ${fmtEth(wallet.balance)}</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn" style="flex:1" id="cancelPurchase">Отмена</button>
+      <button class="btn btn-primary" style="flex:1" id="confirmPurchase" ${wallet.balance < nft.price ? 'disabled' : ''}>${wallet.balance < nft.price ? 'Недостаточно средств' : 'Подтвердить покупку'}</button>
+    </div>
+  `;
+  $('#cancelPurchase').onclick = () => $('#purchaseModal').classList.remove('active');
+  $('#confirmPurchase').onclick = () => confirmPurchase(nft);
+  $('#purchaseModal').classList.add('active');
+}
+
+function confirmPurchase(nft){
+  if(wallet.balance < nft.price){
+    showNotif('Недостаточно средств на кошельке', true);
+    return;
+  }
+  wallet.balance = Math.round((wallet.balance - nft.price) * 100) / 100;
+  wallet.owned.push(nft.id);
+  saveWallet();
+  $('#purchaseModal').classList.remove('active');
+  renderAll();
+  showNotif('Поздравляем! «' + nft.name + '» добавлен в вашу коллекцию', false);
+}
+
+function renderAll(){
+  renderWalletWidget();
+  renderNFTs();
+  renderOwned();
+}
+
+function showNotif(msg, isError){
+  const n = $('#notif');
+  n.textContent = msg;
+  n.className = 'notif' + (isError ? ' error' : '');
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3500);
+}
+
+$('#themeBtn').onclick = () => {
+  const root = document.documentElement;
+  root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+$('#walletModalClose').onclick = () => $('#walletModal').classList.remove('active');
+$('#purchaseModalClose').onclick = () => $('#purchaseModal').classList.remove('active');
+$('#walletModal').onclick = e => { if(e.target === e.currentTarget) $('#walletModal').classList.remove('active'); };
+$('#purchaseModal').onclick = e => { if(e.target === e.currentTarget) $('#purchaseModal').classList.remove('active'); };
+
+loadWallet();
+renderWalletOptions();
+renderAll();
+</script>
+</body>
+</html>
